@@ -1,0 +1,14 @@
+package com.voltgrid.session.repository;
+
+import com.voltgrid.session.entity.ChargingSession;
+import com.voltgrid.session.entity.SessionStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface ChargingSessionRepository extends JpaRepository<ChargingSession, Long> {
+    List<ChargingSession> findByUserId(Long userId);
+    List<ChargingSession> findByStationIdAndStatus(Long stationId, SessionStatus status);
+}

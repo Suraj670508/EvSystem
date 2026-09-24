@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoltGrid PS046 - EV Platform Chrome Dashboard</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --danger: #ef4444;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-mono: 'Consolas', 'Courier New', monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 24px;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        h1 {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 14px;
+            color: #60a5fa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        input, textarea, select {
+            width: 100%;
+            background-color: #0b1120;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        textarea {
+            font-family: var(--font-mono);
+            min-height: 110px;
+            resize: vertical;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button:hover { background-color: var(--primary-hover); }
+        button.btn-accent { background-color: var(--accent); }
+        button.btn-accent:hover { background-color: var(--accent-hover); }
+        button.btn-secondary { background-color: var(--surface-hover); }
+        button.btn-secondary:hover { background-color: #475569; }
+        .token-display {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            background-color: #0b1120;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            color: #38bdf8;
+            overflow-x: auto;
+            white-space: nowrap;
+            margin-bottom: 12px;
+        }
+        .response-box {
+            background-color: #0b1120;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            min-height: 250px;
+            max-height: 520px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            color: #e2e8f0;
+        }
+        .status-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .status-200 { background: #065f46; color: #34d399; }
+        .status-201 { background: #065f46; color: #34d399; }
+        .status-400 { background: #991b1b; color: #f87171; }
+        .status-401 { background: #991b1b; color: #f87171; }
+        .status-409 { background: #92400e; color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>⚡ VoltGrid PS046 Platform</h1>
+                <p style="color: var(--text-muted); font-size: 14px;">Interactive Chrome Web Console via API Gateway (<a href="http://localhost:8080/actuator/health" target="_blank" style="color: #60a5fa;">http://localhost:8080</a>)</p>
+            </div>
+            <div>
+                <a href="http://localhost:8761" target="_blank" style="text-decoration: none;">
+                    <button class="btn-secondary">🔍 Open Eureka Registry (8761)</button>
+                </a>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- Left Column: Operations -->
+            <div>
+                <!-- Step 1: Auth -->
+                <div class="card">
+                    <h2>1. Authentication & JWT</h2>
+                    <label>JWT Token (Auto-populated on Login):</label>
+                    <div id="tokenBox" class="token-display">No token yet. Click 'Login' below.</div>
+                    <div class="btn-group">
+                        <button class="btn-accent" onclick="login()">🔑 1. Quick Login (driver_volt_01)</button>
+                        <button class="btn-secondary" onclick="register()">📝 Register New User</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: User Service -->
+                <div class="card">
+                    <h2>2. User Service (/users)</h2>
+                    <label>User Payload (JSON):</label>
+                    <textarea id="userPayload">{
+  "name": "Suraj Kumar",
+  "email": "suraj_driver@voltgrid.com",
+  "phone": "+91 9876543210",
+  "role": "ROLE_USER",
+  "vehicleId": "VOLT-EV-882",
+  "accountStatus": "ACTIVE"
+}</textarea>
+                    <div class="btn-group">
+                        <button onclick="createUser()">➕ POST /users (Create User)</button>
+                        <button class="btn-secondary" onclick="getAllUsers()">📋 GET /users (List All)</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Station Service -->
+                <div class="card">
+                    <h2>3. Station Service (/stations)</h2>
+                    <label>Station Payload (JSON):</label>
+                    <textarea id="stationPayload">{
+  "stationName": "VoltGrid HyperCharger Alpha",
+  "location": "Sector 62, Cyber Hub",
+  "connectorType": "CCS2",
+  "chargingCapacity": 120.0,
+  "status": "AVAILABLE",
+  "totalConnectors": 1
+}</textarea>
+                    <div class="btn-group">
+                        <button onclick="createStation()">⚡ POST /stations (Create Station)</button>
+                        <button class="btn-secondary" onclick="getAllStations()">📋 GET /stations (List All)</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Session & Billing -->
+                <div class="card">
+                    <h2>4. Charging Session & Billing Flow</h2>
+                    <div class="btn-group">
+                        <button class="btn-accent" onclick="startSession()">🔌 Start Session (Plug-In)</button>
+                        <button class="btn-secondary" onclick="updateEnergy()">⚡ Ingest 30 kWh Energy</button>
+                        <button class="btn-secondary" onclick="completeSession()">🏁 Complete Session</button>
+                        <button class="btn-secondary" onclick="getBilling()">💳 View Invoice</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Live Output -->
+            <div>
+                <div class="card" style="position: sticky; top: 24px;">
+                    <h2>🖥️ Live Response Output</h2>
+                    <div id="statusBadge" style="display: none;"></div>
+                    <div id="responseView" class="response-box">// Click any button on the left to execute API calls through API Gateway.
+// Responses and HTTP status codes will appear here in real time.</div>
+                    <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+                        <button class="btn-secondary" onclick="clearOutput()">🧹 Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GATEWAY = "http://localhost:8080";
+        let currentToken = "";
+        let currentUserId = 1;
+        let currentStationId = 1;
+        let currentSessionId = 1;
+
+        function setStatus(code) {
+            const badge = document.getElementById("statusBadge");
+            badge.style.display = "inline-block";
+            badge.className = "status-pill status-" + code;
+            badge.innerText = "HTTP " + code;
+        }
+
+        function display(title, data, status) {
+            setStatus(status);
+            const view = document.getElementById("responseView");
+            view.innerText = `[${new Date().toLocaleTimeString()}] ${title}\n` + 
+                             `Status: ${status}\n\n` + 
+                             JSON.stringify(data, null, 2);
+        }
+
+        function clearOutput() {
+            document.getElementById("responseView").innerText = "// Ready for next operation.";
+            document.getElementById("statusBadge").style.display = "none";
+        }
+
+        async function login() {
+            try {
+                const res = await fetch(`${GATEWAY}/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: "driver_volt_01", password: "Password123!" })
+                });
+                const data = await res.json();
+                if (data.token) {
+                    currentToken = data.token;
+                    document.getElementById("tokenBox").innerText = data.token.substring(0, 35) + "... [Active]";
+                }
+                display("POST /auth/login", data, res.status);
+            } catch (err) {
+                display("Login Error", { error: err.message }, 0);
+            }
+        }
+
+        async function register() {
+            const uname = "driver_volt_" + Math.floor(Date.now() / 1000);
+            try {
+                const res = await fetch(`${GATEWAY}/auth/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: uname, password: "Password123!", role: "ROLE_USER" })
+                });
+                const data = await res.json();
+                display(`POST /auth/register (${uname})`, data, res.status);
+            } catch (err) {
+                display("Register Error", { error: err.message }, 0);
+            }
+        }
+
+        async function createUser() {
+            if (!currentToken) await login();
+            let payload;
+            try {
+                payload = JSON.parse(document.getElementById("userPayload").value);
+                // Ensure unique email
+                payload.email = `suraj_${Math.floor(Date.now() / 1000)}@voltgrid.com`;
+            } catch (e) {
+                alert("Invalid JSON in User Payload");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${GATEWAY}/users`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.id) currentUserId = data.id;
+                display("POST /users", data, res.status);
+            } catch (err) {
+                display("Create User Error", { error: err.message }, 0);
+            }
+        }
+
+        async function getAllUsers() {
+            if (!currentToken) await login();
+            try {
+                const res = await fetch(`${GATEWAY}/users`, {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${currentToken}` }
+                });
+                const data = await res.json();
+                display("GET /users", data, res.status);
+            } catch (err) {
+                display("Get Users Error", { error: err.message }, 0);
+            }
+        }
+
+        async function createStation() {
+            if (!currentToken) await login();
+            let payload;
+            try {
+                payload = JSON.parse(document.getElementById("stationPayload").value);
+            } catch (e) {
+                alert("Invalid JSON in Station Payload");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${GATEWAY}/stations`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.id) currentStationId = data.id;
+                display("POST /stations", data, res.status);
+            } catch (err) {
+                display("Create Station Error", { error: err.message }, 0);
+            }
+        }
+
+        async function getAllStations() {
+            if (!currentToken) await login();
+            try {
+                const res = await fetch(`${GATEWAY}/stations`, {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${currentToken}` }
+                });
+                const data = await res.json();
+                display("GET /stations", data, res.status);
+            } catch (err) {
+                display("Get Stations Error", { error: err.message }, 0);
+            }
+        }
+
+        async function startSession() {
+            if (!currentToken) await login();
+            try {
+                const res = await fetch(`${GATEWAY}/sessions`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({ userId: currentUserId, stationId: currentStationId, chargingRate: 60.0 })
+                });
+                const data = await res.json();
+                if (data.id) currentSessionId = data.id;
+                display("POST /sessions (Plug-In Event)", data, res.status);
+            } catch (err) {
+                display("Start Session Error", { error: err.message }, 0);
+            }
+        }
+
+        async function updateEnergy() {
+            if (!currentToken) await login();
+            try {
+                const res = await fetch(`${GATEWAY}/sessions/${currentSessionId}/energy`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({ energyConsumed: 30.0 })
+                });
+                const data = await res.json();
+                display(`PUT /sessions/${currentSessionId}/energy (30 kWh)`, data, res.status);
+            } catch (err) {
+                display("Energy Update Error", { error: err.message }, 0);
+            }
+        }
+
+        async function completeSession() {
+            if (!currentToken) await login();
+            try {
+                const res = await fetch(`${GATEWAY}/sessions/${currentSessionId}/complete`, {
+                    method: "PUT",
+                    headers: { "Authorization": `Bearer ${currentToken}` }
+                });
+                const data = await res.json();
+                display(`PUT /sessions/${currentSessionId}/complete`, data, res.status);
+            } catch (err) {
+                display("Complete Session Error", { error: err.message }, 0);
+            }
+        }
+
+        async function getBilling() {
+            if (!currentToken) await login();
+            try {
+                const res = await fetch(`${GATEWAY}/billing/session/${currentSessionId}`, {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${currentToken}` }
+                });
+                const data = await res.json();
+                display(`GET /billing/session/${currentSessionId}`, data, res.status);
+            } catch (err) {
+                display("Get Billing Error", { error: err.message }, 0);
+            }
+        }
+    </script>
+</body>
+</html>
